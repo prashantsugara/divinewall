@@ -1,0 +1,29 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isImageUpload() {
+      // For create/update, request.resource is non-null
+      return request.resource != null &&
+             request.resource.contentType.matches('image/.*');
+    }
+
+    // Wallpapers live under: wallpapers/{categoryId}/{timestamp_filename}
+    match /wallpapers/{categoryId}/{fileName} {
+      // Allow anyone to read files (actual public access is still gated by download tokens)
+      allow read: if true;
+
+      // Allow only signed-in users to upload images (admins enforced by app UI)
+      // Block very large uploads and non-image content types
+      allow write: if isSignedIn() && isImageUpload() && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Default: allow read for other assets (icons, etc.). Deny writes elsewhere by default.
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+  }
+}

@@ -1,0 +1,178 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========== Helper Functions ==========
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && userId == uid();
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(uid())).data.role == 'admin';
+    }
+
+    // Validate user data on creation/update
+    function validUserData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'email', 'displayName', 'role', 'createdAt', 'updatedAt']) &&
+             data.id is string &&
+             data.email is string &&
+             data.displayName is string &&
+             data.role is string &&
+             data.createdAt is string &&
+             data.updatedAt is string;
+    }
+
+    // Validate category data
+    function validCategoryData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'name', 'order', 'createdAt', 'updatedAt']) &&
+             data.id is string &&
+             data.name is string &&
+             data.order is int &&
+             data.createdAt is string &&
+             data.updatedAt is string;
+    }
+
+    // Validate wallpaper data
+    function validWallpaperData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'categoryId', 'title', 'imageUrl', 'uploadedBy', 'downloadCount', 'tags', 'createdAt', 'updatedAt']) &&
+             data.id is string &&
+             data.categoryId is string &&
+             data.title is string &&
+             data.imageUrl is string &&
+             data.uploadedBy is string &&
+             data.downloadCount is int &&
+             data.tags is list &&
+             data.createdAt is string &&
+             data.updatedAt is string;
+    }
+
+    // Validate favorite data
+    function validFavoriteData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'userId', 'wallpaperId', 'createdAt', 'updatedAt']) &&
+             data.id is string &&
+             data.userId is string &&
+             data.wallpaperId is string &&
+             data.createdAt is string &&
+             data.updatedAt is string;
+    }
+
+    // ========== Collection Rules ==========
+
+    // Users collection
+    match /users/{userId} {
+      // Anyone signed in can read user profiles (for displaying uploader names, etc.)
+      allow read: if isSignedIn();
+
+      // User can create their own profile on first sign-in
+      // Role must be 'user' and id must match the document ID
+      allow create: if isSelf(userId) && 
+                      validUserData() &&
+                      request.resource.data.role == 'user' &&
+                      request.resource.data.id == userId;
+
+      // User can update their own profile (except role, id, and createdAt)
+      // Admin can update any user profile including role
+      allow update: if (isSelf(userId) && 
+                       validUserData() &&
+                       request.resource.data.role == resource.data.role &&
+                       request.resource.data.id == resource.data.id &&
+                       request.resource.data.createdAt == resource.data.createdAt) || 
+                      isAdmin();
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      // All signed-in users can read categories
+      allow read: if isSignedIn();
+
+      // Only admins can create, update, or delete categories
+      allow create: if isAdmin() && validCategoryData() && request.resource.data.id == categoryId;
+      allow update: if isAdmin() && validCategoryData();
+      allow delete: if isAdmin();
+    }
+
+    // Wallpapers collection
+    match /wallpapers/{wallpaperId} {
+      // All signed-in users can read wallpapers
+      allow read: if isSignedIn();
+
+      // Only admins can create wallpapers
+      allow create: if isAdmin() && validWallpaperData() && request.resource.data.id == wallpaperId;
+
+      // Admins can fully update wallpapers
+      // Regular users can only increment downloadCount or likesCount by exactly 1
+      allow update: if isAdmin() ||
+                      (isSignedIn() && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloadCount', 'likesCount', 'updatedAt']) &&
+                       // Check downloadCount: either unchanged OR incremented by 1
+                       (request.resource.data.downloadCount == resource.data.downloadCount || 
+                        request.resource.data.downloadCount == resource.data.downloadCount + 1) &&
+                       // Check likesCount: either unchanged OR incremented/decremented by 1
+                       (request.resource.data.likesCount == resource.data.likesCount || 
+                        request.resource.data.likesCount == resource.data.likesCount + 1 ||
+                        request.resource.data.likesCount == resource.data.likesCount - 1));
+
+      // Only admins can delete wallpapers
+      allow delete: if isAdmin();
+    }
+
+    // Favorites collection
+    match /favorites/{favoriteId} {
+      // Reads
+      // - Allow get when the doc is missing (so clients can check existence), or when owner/admin
+      // - Query/list reads are evaluated per document; restrict to owner or admin
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == uid() || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == uid() || isAdmin());
+
+      // Users can create their own favorites
+      // Enforce deterministic ID format: userId_wallpaperId
+      allow create: if isSignedIn() && 
+                      validFavoriteData() &&
+                      request.resource.data.userId == uid() &&
+                      request.resource.data.id == uid() + '_' + request.resource.data.wallpaperId;
+
+      // Users can update their own favorites (only updatedAt may change)
+      allow update: if isSignedIn() &&
+                      resource.data.userId == uid() &&
+                      request.resource.data.diff(resource.data).changedKeys().hasOnly(['updatedAt']);
+
+      // Users can delete their own favorites, admins can delete any
+      allow delete: if (isSignedIn() && resource.data.userId == uid()) || isAdmin();
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Config collection - public read, admin write
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Admin push compose audit collection
+		match /push_messages/{msgId} {
+  	// Only admins can create/read these
+  		allow create, read: if isAdmin();
+  		allow update, delete: if false;
+		}
+  }
+}

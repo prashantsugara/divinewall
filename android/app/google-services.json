@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "1050644881127",
+    "project_id": "gwallpaper-fb491",
+    "storage_bucket": "gwallpaper-fb491.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1050644881127:android:80ab31ca51630207d0cc42",
+        "android_client_info": {
+          "package_name": "com.bittruth.gwallpaper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1050644881127-6ehfu1hcpjesna6iegjqbtmc7hmjcs6l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Vdja86DiThu3LLWHicdKiHsDbuZ8l2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1050644881127-6ehfu1hcpjesna6iegjqbtmc7hmjcs6l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1050644881127:android:4c26913873e3154fd0cc42",
+        "android_client_info": {
+          "package_name": "com.hinduwallpaperps.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1050644881127-6ehfu1hcpjesna6iegjqbtmc7hmjcs6l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Vdja86DiThu3LLWHicdKiHsDbuZ8l2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1050644881127-6ehfu1hcpjesna6iegjqbtmc7hmjcs6l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

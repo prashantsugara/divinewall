@@ -1,0 +1,58 @@
+# === Flutter & Dart ===
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+.buildlog
+.build/
+build/
+
+# === IDEs ===
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# === Android ===
+android/.gradle/
+android/local.properties
+android/key.properties
+android/**/key.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# Keystore files
+*.jks
+*.keystore
+
+# === iOS / macOS ===
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+macos/Pods/
+macos/Flutter/ephemeral/
+
+# === Windows / Linux ===
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# === Web ===
+web/.dart_tool/
+web/build/
+
+# === Logs & Temp ===
+*.log
+*.tmp
+*.bak
+*.swp
+
+# === Environment ===
+.env
+.env.*
