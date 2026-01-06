@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gwallpaper-fb491",
+          "appId": "1:1050644881127:android:4c26913873e3154fd0cc42",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gwallpaper-fb491",
+          "configurations": {
+            "android": "1:1050644881127:android:4c26913873e3154fd0cc42",
+            "web": "1:1050644881127:web:5c98ee747d2b5a0fd0cc42"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
